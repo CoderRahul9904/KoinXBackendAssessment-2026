@@ -1,5 +1,5 @@
-// Configuration for matching tolerance
+// Export defaults, overridable by env vars or request body
 module.exports = {
-    amountTolerance: 0.01, // allow up to 1 cent difference
-    dateToleranceDays: 0 // exact day matching
+  timestampToleranceSeconds: parseInt(process.env.TIMESTAMP_TOLERANCE_SECONDS) || 300,
+  quantityTolerancePct: parseFloat(process.env.QUANTITY_TOLERANCE_PCT) || 0.01,
 };
