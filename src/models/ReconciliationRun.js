@@ -1,10 +1,35 @@
 const mongoose = require('mongoose');
 
 const reconciliationRunSchema = new mongoose.Schema({
-    startTime: { type: Date, default: Date.now },
-    endTime: { type: Date },
-    status: { type: String, default: 'processing' }, // processing, completed, failed
-    processedCount: { type: Number, default: 0 }
-}, { timestamps: true });
+  runId: { 
+    type: String, 
+    required: true, 
+    unique: true 
+  },
+  status: { 
+    type: String, 
+    enum: ['pending', 'running', 'completed', 'failed'] 
+  },
+  config: {
+    timestampToleranceSeconds: { type: Number },
+    quantityTolerancePct: { type: Number }
+  },
+  summary: {
+    matched: { type: Number },
+    conflicting: { type: Number },
+    unmatchedUser: { type: Number },
+    unmatchedExchange: { type: Number }
+  },
+  startedAt: { 
+    type: Date 
+  },
+  completedAt: { 
+    type: Date 
+  },
+  error: { 
+    type: String, 
+    default: null 
+  }
+});
 
 module.exports = mongoose.model('ReconciliationRun', reconciliationRunSchema);
