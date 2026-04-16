@@ -50,10 +50,10 @@ const ingestCSV = (filePath, source, runId) => {
           if (transactions.length > 0) {
             await Transaction.insertMany(transactions);
           }
-          logger.info(Ingestion complete for . Total: , Valid: , Flagged: );
+          logger.info(`Ingestion complete for ${source}. Total: ${total}, Valid: ${valid}, Flagged: ${flagged}`);
           resolve({ total, valid, flagged });
         } catch (error) {
-          logger.error(Error saving transactions: );
+          logger.error(`Error saving transactions: ${error.message}`);
           reject(error);
         }
       })
