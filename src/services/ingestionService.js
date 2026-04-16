@@ -20,8 +20,10 @@ const ingestCSV = (filePath, source, runId) => {
         const normalizedAsset = normalizeAsset(row.asset);
         const normalizedType = normalizeType(row.type);
         const quantityVal = parseFloat(row.quantity);
-        const priceVal = row.price ? parseFloat(row.price) : null;
+        const priceVal = row.price_usd ? parseFloat(row.price_usd) : (row.price ? parseFloat(row.price) : null);
         const feeVal = row.fee ? parseFloat(row.fee) : null;
+
+        row.txId = row.transaction_id || row.txId; // For validateRow which checks txId
 
         const validation = validateRow(row, source);
         
@@ -37,7 +39,7 @@ const ingestCSV = (filePath, source, runId) => {
             quantity: isNaN(quantityVal) ? null : quantityVal,
             price: isNaN(priceVal) ? null : priceVal,
             fee: isNaN(feeVal) ? null : feeVal,
-            currency: row.currency || null,
+            currency: row.currency || 'USD',
             rawRow: row,
             dataQuality: validation,
             runId: runId
