@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: koinx-reconciliation-engine
+    env: node
+    plan: free
+    region: singapore
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: PORT
+        sync: false
+      - key: TIMESTAMP_TOLERANCE_SECONDS
+        sync: false
+      - key: QUANTITY_TOLERANCE_PCT
+        sync: false
