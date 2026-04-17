@@ -116,3 +116,31 @@ KoinXBackendAssessment-2026/
 ## Deployment on Render
 
 This project is configured for seamless deployment on [Render](https://render.com/). A standard `render.yaml` Blueprint is included in the project root to automate the required environment settings and continuous deployment process as a Web Service.
+
+## API Documentation & Proof of Work
+
+The following screenshots demonstrate the API functionality using the deployed base URL: `https://koinxbackendassessment-2026.onrender.com`
+
+### 1. Trigger Reconciliation
+**POST** `https://koinxbackendassessment-2026.onrender.com/api/reconcile`
+*Triggers the ingestion and matching process.*
+
+![Trigger Reconciliation](docs/screenshots/postman_reconcile.png)
+
+### 2. Reconciliation Summary
+**GET** `https://koinxbackendassessment-2026.onrender.com/api/report/:runId/summary`
+*Retrieves counts for matched, conflicting, and unmatched transactions.*
+
+![Reconciliation Summary](docs/screenshots/postman_summary.png)
+
+### 3. Unmatched Transactions
+**GET** `https://koinxbackendassessment-2026.onrender.com/api/report/:runId/unmatched`
+*Retrieves a detailed list of transactions that failed to match, including the reason.*
+
+![Unmatched Transactions](docs/screenshots/postman_unmatched.png)
+
+### 4. Full Reconciliation Report (CSV)
+**GET** `https://koinxbackendassessment-2026.onrender.com/api/report/:runId`
+*Downloads the complete reconciliation report in CSV format.*
+
+![Full Report CSV](docs/screenshots/postman_report_csv.png)
