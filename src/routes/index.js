@@ -1,10 +1,10 @@
 const router = require('express').Router();
 const { triggerReconcile } = require('../controllers/reconcileController');
-const { getFullReport, getSummary, getUnmatched } = require('../controllers/reportController');
+const { getSummary, streamReportCsv } = require('../controllers/reportController');
 
-router.post('/v1/reconcile/ingest', triggerReconcile);
-router.get('/v1/report/:runId', getFullReport);
-router.get('/v1/report/:runId/summary', getSummary);
-router.get('/v1/report/:runId/unmatched', getUnmatched);
+router.post('/reconcile', triggerReconcile);
+router.get('/reconcile/:runId', getSummary);
+router.get('/report/:runId', streamReportCsv);
+router.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 module.exports = router;

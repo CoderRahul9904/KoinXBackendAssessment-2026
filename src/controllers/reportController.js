@@ -1,23 +1,7 @@
-const Report = require('../models/Report');
+const fs = require('fs');
+const path = require('path');
 const ReconciliationRun = require('../models/ReconciliationRun');
 const logger = require('../utils/logger');
-
-async function getFullReport(req, res) {
-  try {
-    const { runId } = req.params;
-    const reports = await Report.find({ runId }).lean();
-    if (!reports || reports.length === 0) {
-      // Check if run exists
-      const run = await ReconciliationRun.findOne({ runId });
-      if (!run) return res.status(404).json({ error: 'runId not found' });
-      return res.json([]);
-    }
-    res.json(reports);
-  } catch (error) {
-    logger.error('Error fetching full report:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-}
 
 async function getSummary(req, res) {
   try {
@@ -38,19 +22,24 @@ async function getSummary(req, res) {
   }
 }
 
-async function getUnmatched(req, res) {
+async function streamReportCsv(req, res) {
   try {
     const { runId } = req.params;
-    const unmatched = await Report.find({ 
-      runId, 
-      category: { $in: ['unmatched_user', 'unmatched_exchange'] } 
-    }).lean();
+    const csvPath = path.join(__dirname, `../../reports/reconciliation_${runId}.csv`);
     
-    res.json(unmatched);
+    if (!fs.existsSync(csvPath)) {
+      return res.status(404).json({ error: 'Report not found or not yet generated' });
+    }
+    
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="reconciliation_${runId}.csv"`);
+    
+    const readStream = fs.createReadStream(csvPath);
+    readStream.pipe(res);
   } catch (error) {
-    logger.error('Error fetching unmatched:', error);
+    logger.error('Error streaming report:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
 
-module.exports = { getFullReport, getSummary, getUnmatched };
+module.exports = { getSummary, streamReportCsv };

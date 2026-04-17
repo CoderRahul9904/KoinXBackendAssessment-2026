@@ -7,6 +7,7 @@ const logger = require('../utils/logger');
 const ingestCSV = (filePath, source, runId) => {
   return new Promise((resolve, reject) => {
     const transactions = [];
+    const processedTxns = new Set();
     let total = 0;
     let valid = 0;
     let flagged = 0;
@@ -26,6 +27,15 @@ const ingestCSV = (filePath, source, runId) => {
         row.txId = row.transaction_id || row.txId; // For validateRow which checks txId
 
         const validation = validateRow(row, source);
+        
+        // FIX 1: CSV Ingestion - Duplicate Detection
+        const compositeKey = `${row.txId}_${row.quantity}_${row.timestamp}`;
+        if (processedTxns.has(compositeKey)) {
+          validation.isValid = false;
+          validation.issues.push("duplicate_detected");
+        } else {
+          processedTxns.add(compositeKey);
+        }
         
         if (validation.isValid) valid++;
         else flagged++;
@@ -50,7 +60,8 @@ const ingestCSV = (filePath, source, runId) => {
           if (transactions.length > 0) {
             await Transaction.insertMany(transactions);
           }
-          logger.info(`Ingestion complete for ${source}. Total: ${total}, Valid: ${valid}, Flagged: ${flagged}`);
+          let duplicates = total - processedTxns.size;
+          logger.info(`Ingestion complete for ${source}. Total: ${total}, Valid: ${valid}, Flagged: ${flagged}, Duplicates: ${duplicates}`);
           resolve({ total, valid, flagged });
         } catch (error) {
           logger.error(`Error saving transactions: ${error.message}`);

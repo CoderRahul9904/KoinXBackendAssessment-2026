@@ -28,6 +28,8 @@ const validateRow = (row, source) => {
   
   if (!row.timestamp || isNaN(Date.parse(row.timestamp))) {
     issues.push("missing or invalid timestamp");
+  } else if (new Date(row.timestamp) > new Date()) {
+    issues.push("future_timestamp_detected");
   }
   
   const quantity = parseFloat(row.quantity);
