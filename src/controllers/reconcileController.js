@@ -1,33 +1,76 @@
-const { randomUUID } = require('crypto');
-const ingestionService = require('../services/ingestionService');
+const { v4: uuidv4 } = require('uuid');
 const path = require('path');
+const ReconciliationRun = require('../models/ReconciliationRun');
+const { ingestCSV } = require('../services/ingestionService');
+const { matchTransactions } = require('../services/matcherService');
+const { generateReport } = require('../services/reporterService');
 const logger = require('../utils/logger');
+const defaultConfig = require('../config/tolerance');
 
-const ingestFiles = async (req, res) => {
-    const runId = randomUUID();
-    logger.info(`Starting CSV ingestion directly via test endpoint for runId: ${runId}`);
+async function triggerReconcile(req, res) {
+  const { timestampToleranceSeconds, quantityTolerancePct } = req.body;
+  const config = {
+    timestampToleranceSeconds: timestampToleranceSeconds !== undefined ? timestampToleranceSeconds : defaultConfig.timestampToleranceSeconds,
+    quantityTolerancePct: quantityTolerancePct !== undefined ? quantityTolerancePct : defaultConfig.quantityTolerancePct
+  };
+
+  const runId = uuidv4();
+
+  try {
+    // 2. Create ReconciliationRun
+    await ReconciliationRun.create({
+      runId,
+      status: 'pending',
+      config,
+      startedAt: new Date()
+    });
+
+    // 3. Respond immediately
+    res.status(202).json({ runId, status: 'pending' });
+
+    // 4. Background processing
+    processReconciliation(runId, config).catch(err => {
+      logger.error(`Background processing failed for runId ${runId}: ${err.message}`);
+    });
+  } catch (error) {
+    logger.error(`Error triggering reconcile: ${error.message}`);
+    res.status(500).json({ error: 'Failed to trigger reconciliation' });
+  }
+}
+
+async function processReconciliation(runId, config) {
+  try {
+    await ReconciliationRun.findOneAndUpdate({ runId }, { status: 'running' });
     
-    try {
-        const userFile = path.join(__dirname, '../../data/user_transactions.csv');
-        const exchangeFile = path.join(__dirname, '../../data/exchange_transactions.csv');
-        
-        const userResult = await ingestionService.ingestCSV(userFile, 'user', runId);
-        const exchangeResult = await ingestionService.ingestCSV(exchangeFile, 'exchange', runId);
-        
-        const totalImported = userResult.total + exchangeResult.total;
-        const validRows = userResult.valid + exchangeResult.valid;
-        const flaggedRows = userResult.flagged + exchangeResult.flagged;
-        
-        res.status(200).json({
-            runId,
-            totalImported,
-            validRows,
-            flaggedRows
-        });
-    } catch (error) {
-        logger.error(`Ingestion failed: ${error.message}`);
-        res.status(500).json({ error: 'Ingestion failed', details: error.message });
-    }
-};
+    // File paths
+    const userCsvPath = path.join(__dirname, '../../data/user_transactions.csv');
+    const exchangeCsvPath = path.join(__dirname, '../../data/exchange_transactions.csv');
+    
+    // Ingest
+    await ingestCSV(userCsvPath, 'user', runId);
+    await ingestCSV(exchangeCsvPath, 'exchange', runId);
+    
+    // Match
+    const matchResults = await matchTransactions(runId, config);
+    
+    // Report
+    const summary = await generateReport(runId, matchResults);
+    
+    // Complete
+    await ReconciliationRun.findOneAndUpdate({ runId }, {
+      status: 'completed',
+      summary,
+      completedAt: new Date()
+    });
+    
+    logger.info(`Run ${runId} completed successfully.`);
+  } catch (error) {
+    await ReconciliationRun.findOneAndUpdate({ runId }, {
+      status: 'failed',
+      error: error.message,
+      completedAt: new Date()
+    });
+  }
+}
 
-module.exports = { ingestFiles };
+module.exports = { triggerReconcile };
