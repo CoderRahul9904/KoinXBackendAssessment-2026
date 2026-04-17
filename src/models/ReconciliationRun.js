@@ -17,8 +17,8 @@ const reconciliationRunSchema = new mongoose.Schema({
   summary: {
     matched: { type: Number },
     conflicting: { type: Number },
-    unmatchedUser: { type: Number },
-    unmatchedExchange: { type: Number }
+    unmatched_user: { type: Number },
+    unmatched_exchange: { type: Number }
   },
   startedAt: { 
     type: Date 

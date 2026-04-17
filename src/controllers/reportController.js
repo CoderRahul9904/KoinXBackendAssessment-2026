@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const ReconciliationRun = require('../models/ReconciliationRun');
+const Report = require('../models/Report');
 const logger = require('../utils/logger');
 
 async function getSummary(req, res) {
@@ -42,4 +43,18 @@ async function streamReportCsv(req, res) {
   }
 }
 
-module.exports = { getSummary, streamReportCsv };
+async function getUnmatched(req, res) {
+  try {
+    const { runId } = req.params;
+    const unmatched = await Report.find({
+      runId,
+      category: { $in: ['Unmatched_User', 'Unmatched_Exchange', 'unmatched_user', 'unmatched_exchange'] }
+    }).lean();
+    res.json(unmatched);
+  } catch (error) {
+    logger.error('Error fetching unmatched reports:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+module.exports = { getSummary, streamReportCsv, getUnmatched };
