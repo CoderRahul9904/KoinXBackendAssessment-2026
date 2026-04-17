@@ -1,23 +1,33 @@
-const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const path = require('path');
 const ReconciliationRun = require('../models/ReconciliationRun');
 const { ingestCSV } = require('../services/ingestionService');
 const { matchTransactions } = require('../services/matcherService');
 const { generateReport } = require('../services/reporterService');
 const logger = require('../utils/logger');
-const defaultConfig = require('../config/tolerance');
 
 async function triggerReconcile(req, res) {
-  const { timestampToleranceSeconds, quantityTolerancePct } = req.body;
-  const config = {
-    timestampToleranceSeconds: timestampToleranceSeconds !== undefined ? timestampToleranceSeconds : defaultConfig.timestampToleranceSeconds,
-    quantityTolerancePct: quantityTolerancePct !== undefined ? quantityTolerancePct : defaultConfig.quantityTolerancePct
-  };
+  // Use environment variables for config directly instead of expecting req.body
+  const timestampToleranceSeconds = parseInt(process.env.TIMESTAMP_TOLERANCE_SECONDS) || 300;
+  const quantityTolerancePct = parseFloat(process.env.QUANTITY_TOLERANCE_PCT) || 0.01;
+  const config = { timestampToleranceSeconds, quantityTolerancePct };
 
-  const runId = uuidv4();
+  const runId = crypto.randomUUID();
 
   try {
-    // 2. Create ReconciliationRun
+    // File paths
+    const userCsvPath = path.join(__dirname, '../../data/user_transactions.csv');
+    const exchangeCsvPath = path.join(__dirname, '../../data/exchange_transactions.csv');
+    
+    // Ingest synchronously
+    const userIngest = await ingestCSV(userCsvPath, 'user', runId);
+    const exchangeIngest = await ingestCSV(exchangeCsvPath, 'exchange', runId);
+    
+    const totalImported = (userIngest.total || 0) + (exchangeIngest.total || 0);
+    const validRows = (userIngest.valid || 0) + (exchangeIngest.valid || 0);
+    const flaggedRows = (userIngest.flagged || 0) + (exchangeIngest.flagged || 0);
+
+    // Create ReconciliationRun
     await ReconciliationRun.create({
       runId,
       status: 'pending',
@@ -25,10 +35,15 @@ async function triggerReconcile(req, res) {
       startedAt: new Date()
     });
 
-    // 3. Respond immediately
-    res.status(202).json({ runId, status: 'pending' });
+    // Respond immediately with the required telemetry
+    res.status(202).json({ 
+      runId, 
+      totalImported, 
+      validRows, 
+      flaggedRows 
+    });
 
-    // 4. Background processing
+    // Background processing for match + report
     processReconciliation(runId, config).catch(err => {
       logger.error(`Background processing failed for runId ${runId}: ${err.message}`);
     });
@@ -41,14 +56,6 @@ async function triggerReconcile(req, res) {
 async function processReconciliation(runId, config) {
   try {
     await ReconciliationRun.findOneAndUpdate({ runId }, { status: 'running' });
-    
-    // File paths
-    const userCsvPath = path.join(__dirname, '../../data/user_transactions.csv');
-    const exchangeCsvPath = path.join(__dirname, '../../data/exchange_transactions.csv');
-    
-    // Ingest
-    await ingestCSV(userCsvPath, 'user', runId);
-    await ingestCSV(exchangeCsvPath, 'exchange', runId);
     
     // Match
     const matchResults = await matchTransactions(runId, config);
