@@ -1,0 +1,139 @@
+{
+  "info": {
+    "_postman_id": "11abf83c-6ca3-4a0b-94eb-b1ec27e2df21",
+    "name": "KoinX_Transaction_Reconciliation_Engine",
+    "description": "API collection for the KoinX Transaction Reconciliation Engine Assessment",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check (GET /api/health)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/health",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Ingest User Transactions (POST /api/reconcile)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "user_transactions.csv"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/reconcile",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "reconcile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Ingest Exchange Transactions (POST /api/reconcile)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "exchange_transactions.csv"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/reconcile",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "reconcile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Reconciliation Results (GET /api/reconcile/{{runId}})",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/reconcile/{{runId}}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "reconcile",
+            "{{runId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Download Reconciliation Report (GET /api/report/{{runId}})",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/report/{{runId}}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "report",
+            "{{runId}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "runId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
