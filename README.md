@@ -113,6 +113,36 @@ KoinXBackendAssessment-2026/
 |-- render.yaml
 ```
 
+## Architecture & Data Flow
+
+### System Architecture Diagram
+
+```mermaid
+graph TD
+    A[Client Request] --> B[Express Server]
+    B --> C{Reconcile Controller}
+    
+    subgraph "Ingestion Phase"
+        C --> D[Ingestion Service]
+        D --> E[CSV Parser]
+        E --> F[Data Quality Validator]
+        F --> G[(MongoDB)]
+    end
+    
+    subgraph "Matching Phase"
+        C --> H[Matcher Service]
+        H --> G
+        H --> I[Tolerance & Normalization Engine]
+    end
+    
+    subgraph "Reporting Phase"
+        C --> J[Reporter Service]
+        J --> G
+        J --> K[CSV Streamer]
+        K --> L[Client Download]
+    end
+```
+
 ## Deployment on Render
 
 This project is configured for seamless deployment on [Render](https://render.com/). A standard `render.yaml` Blueprint is included in the project root to automate the required environment settings and continuous deployment process as a Web Service.
