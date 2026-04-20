@@ -10,7 +10,7 @@ In the cryptocurrency ecosystem, user balances on internal platforms must freque
 
 Check out the full walkthrough of the technical implementation and flow:
 
-https://github.com/CoderRahul9904/KoinXBackendAssessment-2026/blob/main/assets/KoinX%20Backend%20Assessment.mp4?raw=true
+<video src="assets/KoinX%20Backend%20Assessment.mp4" width="100%" controls></video>
 
 ## Tech Stack
 - **Node.js**
