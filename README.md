@@ -10,7 +10,7 @@ In the cryptocurrency ecosystem, user balances on internal platforms must freque
 
 Check out the full walkthrough of the technical implementation and flow:
 
-<video src="assets/KoinX%20Backend%20Assessment.mp4" width="100%" controls></video>
+![Walkthrough Video](assets/walkthrough.mp4)
 
 ## Tech Stack
 - **Node.js**
@@ -89,7 +89,7 @@ QUANTITY_TOLERANCE_PCT=0.01
 ```text
 KoinXBackendAssessment-2026/
 |-- assets/
-|   |-- KoinX Backend Assessment.mp4
+|   |-- walkthrough.mp4
 |-- data/
 |-- reports/
 |-- src/
