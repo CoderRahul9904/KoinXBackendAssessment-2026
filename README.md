@@ -6,6 +6,12 @@ A robust Transaction Reconciliation Engine built in Node.js, Express, and MongoD
 
 In the cryptocurrency ecosystem, user balances on internal platforms must frequently be reconciled with their corresponding exchange balances. This engine automates that process by ingesting transaction data, mapping identical or corresponding asset types (e.g., BTC to Bitcoin), and matching entries based on acceptable time and amount tolerances.
 
+## 📺 Walkthrough Video
+
+Check out the full walkthrough of the technical implementation and flow:
+
+https://github.com/CoderRahul9904/KoinXBackendAssessment-2026/blob/main/assets/KoinX%20Backend%20Assessment.mp4?raw=true
+
 ## Tech Stack
 - **Node.js**
 - **Express.js**
@@ -82,6 +88,8 @@ QUANTITY_TOLERANCE_PCT=0.01
 
 ```text
 KoinXBackendAssessment-2026/
+|-- assets/
+|   |-- KoinX Backend Assessment.mp4
 |-- data/
 |-- reports/
 |-- src/
